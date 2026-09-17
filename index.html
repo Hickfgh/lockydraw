@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>LuckyDraw 抽籤小站</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					fontFamily: { sans: ['"Noto Sans TC"', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+					colors: { ink: '#17202a', coral: '#ff7657', cream: '#fffaf1', lime: '#d7f36b' }
+				}
+			}
+		}
+	</script>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+	<script src="https://unpkg.com/lucide@latest"></script>
+	<style>
+		body { background: #f4f0e8; }
+		.paper-grid { background-image: linear-gradient(#d8d2c6 1px, transparent 1px), linear-gradient(90deg, #d8d2c6 1px, transparent 1px); background-size: 28px 28px; }
+		.result-pop { animation: resultPop .55s cubic-bezier(.22, 1.4, .36, 1) both; }
+		.shuffle { animation: shuffle .12s linear infinite alternate; }
+		@keyframes resultPop { from { opacity: 0; transform: scale(.72) rotate(-3deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+		@keyframes shuffle { from { transform: translateY(-4px) rotate(-1deg); } to { transform: translateY(4px) rotate(1deg); } }
+	</style>
+</head>
+<body class="min-h-screen overflow-x-hidden font-sans text-ink antialiased">
+	<main class="relative mx-auto min-h-screen max-w-7xl px-5 py-6 sm:px-8 lg:px-12">
+		<div class="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-lime opacity-70 blur-3xl"></div>
+		<div class="pointer-events-none absolute -left-28 top-1/2 h-80 w-80 rounded-full bg-coral/20 blur-3xl"></div>
+
+		<header class="relative z-10 flex items-center justify-between border-b-2 border-ink/10 pb-5">
+			<div class="flex items-center gap-3">
+				<div class="grid h-11 w-11 rotate-3 place-items-center rounded-2xl bg-ink text-lime shadow-[4px_4px_0_#ff7657]">
+					<i data-lucide="ticket" class="h-6 w-6"></i>
+				</div>
+				<div>
+					<p class="text-lg font-black tracking-tight">LuckyDraw</p>
+					<p class="text-xs font-medium text-ink/50">今天誰是幸運兒？</p>
+				</div>
+			</div>
+			<div class="hidden items-center gap-2 rounded-full border border-ink/10 bg-white/60 px-3 py-2 text-xs font-bold text-ink/60 sm:flex">
+				<span class="h-2 w-2 rounded-full bg-emerald-400"></span> 隨機引擎已就緒
+			</div>
+		</header>
+
+		<section class="relative z-10 grid gap-8 pb-12 pt-10 lg:grid-cols-[1.1fr_.9fr] lg:items-start lg:pt-16">
+			<div>
+				<div class="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[.22em] text-coral">
+					<span class="h-px w-8 bg-coral"></span> FAIR CHANCE, GOOD VIBES
+				</div>
+				<h1 class="max-w-xl text-5xl font-black leading-[1.08] tracking-[-.045em] sm:text-7xl">讓好運<br><span class="text-coral">自己現身。</span></h1>
+				<p class="mt-6 max-w-md text-base leading-7 text-ink/60">把名字放進來，交給一點隨機、一點期待，抽出今天的幸運兒。</p>
+				<div class="mt-9 flex flex-wrap gap-3 text-sm font-bold">
+					<span class="rounded-full bg-ink px-4 py-2 text-white"><span id="countLabel">0</span> 位參與者</span>
+					<span class="rounded-full border border-ink/15 bg-white/60 px-4 py-2 text-ink/60"><span id="drawCount">0</span> 次抽籤</span>
+				</div>
+
+				<div class="mt-10 max-w-xl rounded-[2rem] border-2 border-ink/10 bg-white/70 p-5 shadow-[8px_8px_0_rgba(23,32,42,.08)] backdrop-blur sm:p-6">
+					<div class="mb-5 flex items-center justify-between">
+						<div>
+							<h2 class="font-black">參與名單</h2>
+							<p class="mt-1 text-xs text-ink/45">每行一位，或用逗號分隔</p>
+						</div>
+						<button id="clearBtn" class="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-bold text-ink/45 transition hover:bg-coral/10 hover:text-coral" title="清空名單">
+							<i data-lucide="trash-2" class="h-3.5 w-3.5"></i> 清空
+						</button>
+					</div>
+					<div class="flex gap-2">
+						<input id="nameInput" type="text" placeholder="例如：小明、阿花、Team A" class="min-w-0 flex-1 rounded-xl border-2 border-ink/10 bg-cream px-4 py-3 text-sm outline-none transition placeholder:text-ink/30 focus:border-coral" />
+						<button id="addBtn" class="grid w-12 shrink-0 place-items-center rounded-xl bg-ink text-lime transition hover:-translate-y-0.5 hover:bg-coral" title="加入名單">
+							<i data-lucide="plus" class="h-5 w-5"></i>
+						</button>
+					</div>
+					<div class="mt-4 flex flex-wrap gap-2" id="nameList"></div>
+					<button id="sampleBtn" class="mt-4 flex items-center gap-2 text-xs font-bold text-ink/45 transition hover:text-coral"><i data-lucide="sparkles" class="h-3.5 w-3.5"></i> 載入範例名單</button>
+				</div>
+			</div>
+
+			<div class="relative lg:pt-12">
+				<div class="paper-grid absolute -inset-5 -z-10 rounded-[2.5rem] opacity-40"></div>
+				<div class="overflow-hidden rounded-[2rem] border-2 border-ink bg-ink shadow-[12px_12px_0_#ff7657]">
+					<div class="flex items-center justify-between border-b border-white/10 px-6 py-5">
+						<div class="flex items-center gap-2 text-sm font-bold text-white"><span class="h-2 w-2 rounded-full bg-coral"></span> 本輪結果</div>
+						<i data-lucide="dice-5" class="h-5 w-5 text-lime"></i>
+					</div>
+					<div class="flex min-h-[330px] flex-col items-center justify-center px-6 py-12 text-center">
+						<div id="emptyState" class="text-white/40">
+							<div class="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-3xl border border-white/10 bg-white/5"><i data-lucide="party-popper" class="h-9 w-9"></i></div>
+							<p class="text-sm font-medium">準備好抽出幸運兒了嗎？</p>
+						</div>
+						<div id="resultState" class="hidden w-full">
+							<p class="mb-4 text-xs font-bold uppercase tracking-[.24em] text-lime">The lucky one is</p>
+							<div id="resultName" class="result-pop break-words text-5xl font-black leading-tight text-white sm:text-6xl"></div>
+							<p id="resultTime" class="mt-5 text-xs text-white/40"></p>
+						</div>
+						<button id="drawBtn" class="mt-10 flex items-center gap-2 rounded-xl bg-lime px-7 py-3.5 text-sm font-black text-ink shadow-[4px_4px_0_#ff7657] transition hover:-translate-y-1 hover:shadow-[6px_6px_0_#ff7657] active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40">
+							<i data-lucide="shuffle" class="h-4 w-4"></i> 開始抽籤
+						</button>
+					</div>
+				</div>
+
+				<div class="mt-8 rounded-2xl border border-ink/10 bg-white/50 p-5">
+					<div class="mb-4 flex items-center justify-between"><h3 class="text-sm font-black">抽籤紀錄</h3><button id="clearHistory" class="text-xs font-bold text-ink/40 hover:text-coral">清除紀錄</button></div>
+					<div id="historyList" class="space-y-2 text-sm text-ink/60"><p class="text-xs text-ink/35">完成第一次抽籤後，結果會顯示在這裡。</p></div>
+				</div>
+			</div>
+		</section>
+	</main>
+
+	<script>
+		lucide.createIcons();
+		const names = [];
+		const history = [];
+		const nameInput = document.querySelector('#nameInput');
+		const nameList = document.querySelector('#nameList');
+		const countLabel = document.querySelector('#countLabel');
+		const drawBtn = document.querySelector('#drawBtn');
+		const emptyState = document.querySelector('#emptyState');
+		const resultState = document.querySelector('#resultState');
+		const resultName = document.querySelector('#resultName');
+		const resultTime = document.querySelector('#resultTime');
+		const historyList = document.querySelector('#historyList');
+
+		function renderNames() {
+			countLabel.textContent = names.length;
+			nameList.innerHTML = names.length ? names.map((name, index) => `<span class="group flex items-center gap-1 rounded-lg bg-ink/5 px-3 py-2 text-xs font-bold">${escapeHtml(name)}<button class="ml-1 text-ink/30 hover:text-coral" data-remove="${index}" title="移除 ${escapeHtml(name)}"><i data-lucide="x" class="h-3 w-3"></i></button></span>`).join('') : '<p class="w-full rounded-xl border border-dashed border-ink/15 px-4 py-5 text-center text-xs text-ink/35">名單是空的，先加入幾位參與者吧！</p>';
+			drawBtn.disabled = names.length < 2;
+			lucide.createIcons();
+		}
+
+		function escapeHtml(value) { return value.replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[character])); }
+		function addNames() {
+			const incoming = nameInput.value.split(/[,，\n]/).map(name => name.trim()).filter(Boolean);
+			incoming.forEach(name => { if (!names.includes(name)) names.push(name); });
+			nameInput.value = '';
+			renderNames();
+			nameInput.focus();
+		}
+		function showResult(name) {
+			emptyState.classList.add('hidden');
+			resultState.classList.remove('hidden');
+			resultName.classList.remove('result-pop');
+			void resultName.offsetWidth;
+			resultName.classList.add('result-pop');
+			resultName.textContent = name;
+			resultTime.textContent = new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+		}
+		function renderHistory() {
+			document.querySelector('#drawCount').textContent = history.length;
+			historyList.innerHTML = history.length ? history.map((name, index) => `<div class="flex items-center justify-between rounded-xl bg-white/60 px-3 py-2.5"><span class="flex items-center gap-2 font-bold"><span class="grid h-6 w-6 place-items-center rounded-md bg-coral/15 text-xs text-coral">${history.length - index}</span>${escapeHtml(name)}</span><span class="text-[11px] text-ink/35">${index === 0 ? '剛剛' : '已完成'}</span></div>`).join('') : '<p class="text-xs text-ink/35">完成第一次抽籤後，結果會顯示在這裡。</p>';
+		}
+
+		document.querySelector('#addBtn').addEventListener('click', addNames);
+		nameInput.addEventListener('keydown', event => { if (event.key === 'Enter') addNames(); });
+		nameList.addEventListener('click', event => { const button = event.target.closest('[data-remove]'); if (button) { names.splice(Number(button.dataset.remove), 1); renderNames(); } });
+		document.querySelector('#sampleBtn').addEventListener('click', () => { names.push(...['小明', '阿花', '冠廷', 'Yuki', 'Team Rocket'].filter(name => !names.includes(name))); renderNames(); });
+		document.querySelector('#clearBtn').addEventListener('click', () => { names.length = 0; renderNames(); });
+		document.querySelector('#clearHistory').addEventListener('click', () => { history.length = 0; renderHistory(); });
+		drawBtn.addEventListener('click', () => {
+			if (names.length < 2) return;
+			drawBtn.disabled = true;
+			drawBtn.classList.add('shuffle');
+			let ticks = 0;
+			const timer = setInterval(() => { resultName.textContent = names[Math.floor(Math.random() * names.length)]; ticks += 1; if (ticks > 12) { clearInterval(timer); drawBtn.classList.remove('shuffle'); drawBtn.disabled = false; const winner = resultName.textContent; history.unshift(winner); showResult(winner); renderHistory(); } }, 90);
+		});
+		renderNames();
+	</script>
+</body>
+</html>
