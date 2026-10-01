@@ -10,17 +10,26 @@
     #main{
         height: 300px;
         width: 300px;
-        background-color: aqua;
+        background-color: aqua
     }
 
     @media screen and (min-width: 700px){
 
         #main{
             background-color: beige;
+            border-radius: 50% 25%;
         }
 
     }
 
+     @media screen and (min-width: 1024px){
+
+        #main{
+            background-color: brown;
+            border-radius: 0% 50% ;
+        }
+
+    }
     </style>
 <body>
     <div id="main">Good Morning</div>
